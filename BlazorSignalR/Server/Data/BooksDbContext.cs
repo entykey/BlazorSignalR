@@ -11,6 +11,11 @@
         {
         }
 
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    //optionsBuilder.UseSqlServer("Server=.; Database=BlazorSignalRServer; Trusted_Connection=True; MultipleActiveResultSets=True; TrustServerCertificate=True");
+        //}
+
         public DbSet<Book> Book { get; set; }
     }
 }

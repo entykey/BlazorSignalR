@@ -3,8 +3,9 @@ using BlazorSignalR.Server.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,15 +49,30 @@ builder.Services.AddSwaggerGen(c =>
             Url = new Uri("https://example.com/license"),
         }
     });
+    #region Expose XML comments in doc.
+    // Prerequisites:  modify this on the Server's ".csproj" file:
+    //      <PropertyGroup>
+    //          <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    //      </PropertyGroup>
+
+
+    // Set the comments path for the Swagger JSON and UI.
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+    c.CustomSchemaIds(r => r.FullName);
+    #endregion
+
     // Configuring Swagger UI Authorization with Swagger
     #region Accepting Bearer Token:
     // tutorial: https://code-maze.com/swagger-authorization-aspnet-core
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Please enter token",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: ```Bearer <token>```\", " +
+        "Doesn't need Bearer, just paste the token here!",
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,
+        Type = SecuritySchemeType.ApiKey,
         BearerFormat = "JWT",
         Scheme = "bearer"
     });
@@ -76,6 +92,7 @@ builder.Services.AddSwaggerGen(c =>
     });
     // End of Configuring Authorization with Swagger UI to accept bearerJWT
     #endregion
+
 });
 #endregion
 
@@ -182,6 +199,7 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
     app.UseWebAssemblyDebugging();
 }
+
 else
 {
     app.UseExceptionHandler("/Error");
